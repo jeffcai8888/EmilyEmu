@@ -30,13 +30,30 @@ Users report game bugs with Lichii logs (`eden_log.txt`, `eden_log.txt.old`). Ea
 
 Add ids here when a report identifies a new game.
 
+## Repository workflow
+
+- `origin` is the owner's repository: `https://github.com/jeffcai8888/EmilyEmu.git`.
+- `upstream` is the direct source: `https://github.com/Frizti/Fritchii.git`, branch `nx2`.
+- `eglantine` is the ancestor reference: `https://github.com/Djihads80/Eglantine.git`.
+- Before development, fetch `upstream` and `origin`, then merge `upstream/nx2` into the working
+  branch if it has new commits. Resolve conflicts and validate the combined changes first.
+- Commit local changes and push them to `origin`. Do not push to `upstream` or `eglantine`.
+- Consult Eglantine for relevant fixes; do not merge its entire branch unless the owner asks.
+- On this Windows checkout, initialize the MSVC environment before configuring CMake. Use a
+  fresh build directory after compiler detection fails, and verify that Release flags contain
+  `/O2` and `/DNDEBUG`. Build with 12 jobs. `build-gui-release` is the validated local build.
+- Verify that `ninja -C build-gui-release -t deps` reports header dependencies. If CMake
+  misdecodes localized MSVC output, set `LICHII_MSVC_SHOWINCLUDES_PREFIX` to the compiler's
+  actual prefix and perform a clean rebuild; otherwise changed headers may leave stale objects.
+
 ## Before writing a fix
 
 Lichii is a fork of [Eglantine](https://github.com/Djihads80/Eglantine). Do not guess, and do not rewrite a fix upstream already has.
 
-1. `git remote add upstream https://github.com/Djihads80/Eglantine.git && git fetch upstream`.
-2. Check `upstream/nx2`, open and closed PRs, unmerged branches, and issues for the game and symptom (`gh pr list -R Djihads80/Eglantine --state all`, `gh issue list -R Djihads80/Eglantine --state all`, `gh pr diff <n>`). Read the diffs, not only the titles.
-3. If nx2 is behind `upstream/nx2`, merge upstream first. Port an existing upstream fix before writing a new one, and cite its PR or commit.
+1. Follow the repository workflow above and fetch `eglantine` when consulting its changes.
+2. Check both source repositories' open and closed PRs, unmerged branches, and issues for the
+   game and symptom. Read the diffs, not only the titles.
+3. Port an existing relevant fix before writing a new one, and cite its PR or commit.
 4. Write a new fix only when nothing upstream addresses the root cause the log shows.
 
 ## Debugging tools
