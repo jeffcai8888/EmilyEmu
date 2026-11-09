@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <atomic>
 #include <mutex>
 
 #include "video_core/game_dlss_status.h"
@@ -9,7 +10,16 @@ namespace VideoCore {
 namespace {
 std::mutex status_mutex;
 GameDlssStatus status;
+std::atomic<Fsr4State> fsr4_state{Fsr4State::Waiting};
 } // Anonymous namespace
+
+Fsr4State GetFsr4State() {
+    return fsr4_state.load(std::memory_order_relaxed);
+}
+
+void SetFsr4State(Fsr4State state) {
+    fsr4_state.store(state, std::memory_order_relaxed);
+}
 
 GameDlssStatus GetGameDlssStatus() {
     std::scoped_lock lock{status_mutex};

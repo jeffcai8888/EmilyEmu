@@ -1,5 +1,8 @@
 # Game-DLSS replacement
 
+The optional Windows x64 [FSR 4.1.2 backend](FSR4.md) can use AMD's signed Vulkan runtime
+for the same validated temporal inputs, with FSR 3.1 as the fallback.
+
 The Vulkan renderer can replace a recognized game-DLSS evaluation with NVIDIA DLSS on
 Windows, then AMD FSR 3.1.4 if NVIDIA DLSS is disabled or unavailable. FSR uses AMD's
 eight temporal-upscaling passes, including depth, motion, history and optional RCAS.

@@ -33,6 +33,10 @@ struct GameDlssStatus {
     u32 rejected_passes{};
 };
 
+enum class Fsr4State : u8 { Waiting, Active, Unavailable };
+[[nodiscard]] Fsr4State GetFsr4State();
+void SetFsr4State(Fsr4State state);
+
 /// For the Graphics tab; safe to call from any thread.
 [[nodiscard]] GameDlssStatus GetGameDlssStatus();
 void SetGameDlssStatus(const GameDlssStatus& status);

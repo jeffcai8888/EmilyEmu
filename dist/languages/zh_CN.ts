@@ -2158,6 +2158,14 @@ Enabling it bypasses such prompts and directly exits the emulation.</source>
         <source>Grid View</source>
         <translation>网格视图</translation>
     </message>
+    <message>
+        <source>Use AMD FSR 4.1.2 in place of a game's DLSS</source>
+        <translation>使用 AMD FSR 4.1.2 替代游戏的 DLSS</translation>
+    </message>
+    <message>
+        <source>Uses AMD's signed Vulkan FSR 4.1.2 runtime on compatible GPUs. Falls back to FSR 3.1 when unavailable. Requires a recognized game with valid depth and motion vectors; currently Fire Emblem: Fortune's Weave. Takes effect when a game starts.</source>
+        <translation>在兼容显卡上使用 AMD 签名的 Vulkan FSR 4.1.2 运行库；不可用时回退至 FSR 3.1。需要已识别游戏提供有效的深度和运动矢量，目前支持 Fire Emblem: Fortune's Weave。启动游戏时生效。</translation>
+    </message>
 </context>
 <context>
     <name>ConfigureApplets</name>
@@ -3288,6 +3296,26 @@ Would you like to delete the old save data?</source>
         <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="397"/>
         <source>VSync On</source>
         <translation>垂直同步开</translation>
+    </message>
+    <message>
+        <source>AMD FSR 4.1.2 draws in place of the game's DLSS.</source>
+        <translation>正在使用 AMD FSR 4.1.2 替代游戏的 DLSS。</translation>
+    </message>
+    <message>
+        <source>AMD FSR 4.1.2 is turned off.</source>
+        <translation>AMD FSR 4.1.2 已关闭。</translation>
+    </message>
+    <message>
+        <source>Waiting for a compatible game's temporal upscaling pass.</source>
+        <translation>等待兼容游戏的时域超分辨率渲染通道。</translation>
+    </message>
+    <message>
+        <source>AMD FSR 4.1.2 is running.</source>
+        <translation>AMD FSR 4.1.2 正在运行。</translation>
+    </message>
+    <message>
+        <source>AMD FSR 4.1.2 is unavailable; using FSR 3.1.</source>
+        <translation>AMD FSR 4.1.2 不可用，正在使用 FSR 3.1。</translation>
     </message>
 </context>
 <context>

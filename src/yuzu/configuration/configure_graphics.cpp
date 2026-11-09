@@ -240,6 +240,11 @@ void ShowGameDlssStatus(QLabel* icon, QLabel* text) {
     case GameDlssState::Replacement:
         break;
     }
+    if (VideoCore::GetFsr4State() == VideoCore::Fsr4State::Active) {
+        icon->setText(good);
+        text->setText(tr("AMD FSR 4.1.2 draws in place of the game's DLSS."));
+        return;
+    }
     icon->setText(warning);
     switch (status.reason) {
     case GameDlssReason::TurnedOff:
@@ -299,6 +304,11 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
 #ifndef EGLANTINE_STREAMLINE
         // Only builds with NVIDIA Streamline (Windows) can use it.
         if (setting->Id() == Settings::values.nvidia_dlss.Id()) {
+            continue;
+        }
+#endif
+#ifndef HAS_AMD_FSR4
+        if (setting->Id() == Settings::values.amd_fsr4.Id()) {
             continue;
         }
 #endif
@@ -413,6 +423,37 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             connect(widget->checkbox, &QCheckBox::toggled, panel, &QWidget::setVisible);
             hold_graphics.emplace(setting->Id(), group);
 #endif
+        } else if (setting->Id() == Settings::values.amd_fsr4.Id()) {
+            QWidget* group = new QWidget(this);
+            QVBoxLayout* layout = new QVBoxLayout(group);
+            layout->setContentsMargins(0, 0, 0, 0);
+            layout->addWidget(widget);
+            QLabel* status = new QLabel(group);
+            status->setWordWrap(true);
+            layout->addWidget(status);
+            const auto update = [status, checkbox = widget->checkbox] {
+                if (!checkbox->isChecked()) {
+                    status->setText(tr("AMD FSR 4.1.2 is turned off."));
+                } else {
+                    switch (VideoCore::GetFsr4State()) {
+                    case VideoCore::Fsr4State::Waiting:
+                        status->setText(tr("Waiting for a compatible game's temporal upscaling pass."));
+                        break;
+                    case VideoCore::Fsr4State::Active:
+                        status->setText(tr("AMD FSR 4.1.2 is running."));
+                        break;
+                    case VideoCore::Fsr4State::Unavailable:
+                        status->setText(tr("AMD FSR 4.1.2 is unavailable; using FSR 3.1."));
+                        break;
+                    }
+                }
+            };
+            update();
+            connect(widget->checkbox, &QCheckBox::toggled, group, update);
+            QTimer* timer = new QTimer(group);
+            connect(timer, &QTimer::timeout, group, update);
+            timer->start(1000);
+            hold_graphics.emplace(setting->Id(), group);
         } else if (setting->Id() == Settings::values.game_dlss_network.Id()) {
             // What draws the game's DLSS right now, under the checkbox.
             QWidget* group = new QWidget(this);
