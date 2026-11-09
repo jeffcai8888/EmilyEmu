@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 3.31)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "macOS deployment target")
 project(yuzu)
 
+set(LICHII_MSVC_SHOWINCLUDES_PREFIX "" CACHE STRING
+    "Override a misdetected localized MSVC /showIncludes prefix for Ninja")
+if (MSVC AND LICHII_MSVC_SHOWINCLUDES_PREFIX)
+    set(CMAKE_CL_SHOWINCLUDES_PREFIX "${LICHII_MSVC_SHOWINCLUDES_PREFIX}")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/find")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
