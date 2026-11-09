@@ -791,7 +791,7 @@ function(AddPackage)
 
     cpm_utils_message(DEBUG "${PKG_ARGS_NAME} download URL is ${PKG_ARGS_URL}")
 
-    if(NOT DEFINED PKG_ARGS_HASH)
+    if(NOT DEFINED PKG_ARGS_HASH AND "${${PKG_ARGS_NAME}_CUSTOM_DIR}" STREQUAL "")
         cpm_utils_message(FATAL_ERROR "${PKG_ARGS_NAME}: No hash defined")
     endif()
 
@@ -1041,6 +1041,16 @@ function(AddCIPackage)
 
         if (PKG_ARGS_MODULE_PATH)
             set(EXTRA_ARGS MODULE_PATH)
+        endif()
+
+        # An explicitly supplied local CI package needs no network checksum lookup.
+        if (${PKG_ARGS_PACKAGE}_CUSTOM_DIR)
+            AddPackage(NAME ${PKG_ARGS_PACKAGE} REPO ${PKG_ARGS_REPO}
+                VERSION ${ARTIFACT_VERSION} FORCE_BUNDLED_PACKAGE ON ${EXTRA_ARGS})
+            set(${PKG_ARGS_PACKAGE}_ADDED TRUE PARENT_SCOPE)
+            Propagate(${PKG_ARGS_PACKAGE}_SOURCE_DIR)
+            Propagate(CMAKE_PREFIX_PATH)
+            return()
         endif()
 
         # download sha512sum file
