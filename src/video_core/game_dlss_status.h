@@ -33,6 +33,10 @@ struct GameDlssStatus {
     u32 rejected_passes{};
 };
 
+enum class Fsr4State : u8 { Waiting, Active, Unavailable };
+[[nodiscard]] Fsr4State GetFsr4State();
+void SetFsr4State(Fsr4State state);
+
 /// The reason in English, for the log.
 [[nodiscard]] const char* GameDlssReasonText(GameDlssReason reason);
 

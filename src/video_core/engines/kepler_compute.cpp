@@ -1387,7 +1387,7 @@ VideoCore::GameDlssReason KeplerCompute::GameDlssBlocker() const {
         VideoCommon::FireEmblemUpscale::ProgramId,
         VideoCommon::FireEmblemUpscale::OutputProgramKey, option);
     const bool forced_native = option && !forced_replacement;
-    if (forced_replacement ||
+    if (forced_replacement || (!option && Settings::values.amd_fsr4.GetValue()) ||
         (!forced_native && !Settings::values.game_dlss_network.GetValue())) {
         return GameDlssReason::TurnedOff;
     }
@@ -1891,9 +1891,11 @@ void KeplerCompute::TraceDlssContract(u64 native_key, bool warn_unvalidated) {
 
 bool KeplerCompute::TryFireEmblemUpscale(bool allow_history) {
     using namespace VideoCommon::FireEmblemUpscale;
-    static const bool requested_history = [] {
+    const bool requested_history = Settings::values.amd_fsr4.GetValue() || [] {
         const char* const option = std::getenv("EDEN_NX2_DLSS_REPLACEMENT");
-        return option && (std::string_view{option} == "fsr" || std::string_view{option} == "dlss");
+        return option && (std::string_view{option} == "fsr" ||
+                           std::string_view{option} == "fsr4" ||
+                           std::string_view{option} == "dlss");
     }();
     const bool use_history = allow_history && requested_history;
     const size_t game_index = dlss_chain.spatial_only ? 1 : 0;

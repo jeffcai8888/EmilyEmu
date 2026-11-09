@@ -597,4 +597,6 @@ if (ENABLE_NVIDIA_DLSS)
     message(STATUS "NVIDIA DLSS through Streamline: ${STREAMLINE_INCLUDE_DIR}")
 endif()
 
+include(FSR4)
+
 create_target_directory_groups(video_core)

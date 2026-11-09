@@ -145,6 +145,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
               "Higher resolutions require more VRAM and bandwidth.\n"
               "Options lower than 1X can cause artifacts."));
     INSERT(Settings, scaling_filter, tr("Window Adapting Filter:"), QString());
+    INSERT(Settings, amd_fsr4, tr("Use AMD FSR 4.1.2 in place of a game's DLSS"),
+           tr("Uses AMD's signed Vulkan FSR 4.1.2 runtime on compatible GPUs. Falls back to "
+              "FSR 3.1 when unavailable. Requires a recognized game with valid depth and motion "
+              "vectors; currently Fire Emblem: Fortune's Weave. Takes effect when a game starts."));
     INSERT(Settings, game_dlss_network, tr("Use the game's own DLSS"),
            tr("Runs a Switch 2 game's own DLSS (its upscaling network, translated for this GPU) "
               "instead of AMD FSR 3.1 in its place.\nAMD FSR 3.1 still draws while the network is "

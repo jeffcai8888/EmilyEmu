@@ -46,6 +46,7 @@
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/util.h"
 #include "video_core/dlss_contract.h"
+#include "video_core/fsr4_policy.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #ifdef EGLANTINE_STREAMLINE
 #include "video_core/vulkan_common/streamline.h"
@@ -1870,8 +1871,17 @@ bool TextureCacheRuntime::UpscaleWithFsr3(Framebuffer* dst_framebuffer, ImageVie
             : 1000.0f / 30.0f;
     const bool reset = !fsr3_last_evaluation || frame_time_ms > 250.0f;
     fsr3_last_evaluation = now;
+    const char* const override_value = std::getenv("EDEN_NX2_DLSS_REPLACEMENT");
+    const bool use_fsr4 = VideoCommon::Fsr4::Requested(
+        Settings::values.amd_fsr4.GetValue(), override_value ? override_value : "");
+#ifdef HAS_AMD_FSR4
+    if (use_fsr4 && UpscaleWithFsr4(dst_framebuffer, input_color, motion_vectors, depth,
+                                   render_size, jitter, motion_scale, frame_time_ms, reset)) {
+        return true;
+    }
+#endif
 #ifdef EGLANTINE_STREAMLINE
-    if (UpscaleWithDlss(dst_framebuffer, input_color, motion_vectors, depth, render_size, jitter,
+    if (!use_fsr4 && UpscaleWithDlss(dst_framebuffer, input_color, motion_vectors, depth, render_size, jitter,
                         motion_scale, reset)) {
         return true;
     }
@@ -1939,6 +1949,81 @@ bool TextureCacheRuntime::UpscaleWithFsr3(Framebuffer* dst_framebuffer, ImageVie
     }
     return true;
 }
+
+#ifdef HAS_AMD_FSR4
+bool TextureCacheRuntime::UpscaleWithFsr4(Framebuffer* dst_framebuffer, ImageView& input_color,
+                                         ImageView& motion_vectors, ImageView& depth,
+                                         std::array<u32, 2> render_size,
+                                         std::array<f32, 2> jitter,
+                                         std::array<f32, 2> motion_scale,
+                                         f32 frame_time_ms, bool reset) {
+    if (fsr4_unsupported) {
+        return false;
+    }
+    const auto resource = [&](const ImageView& view) -> std::optional<Fsr4Upscaler::Image> {
+        const Image* image = view.BackingImage();
+        // AMD's resource API takes a whole VkImage, not the texture cache's subresource view.
+        if (!image || image->info.resources.levels != 1 || image->info.resources.layers != 1 ||
+            image->info.size.depth != 1 || image->info.format != view.format ||
+            (image->UsageFlags() & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) == 0) {
+            return std::nullopt;
+        }
+        const auto& scale = Settings::values.resolution_info;
+        const u32 width = static_cast<u32>(image->info.size.width);
+        const u32 height = static_cast<u32>(image->info.size.height);
+        return Fsr4Upscaler::Image{
+            .image = view.ImageHandle(),
+            .format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, view.format).format,
+            .extent = {image->IsRescaled() ? scale.ScaleUp(width) : width,
+                       image->IsRescaled() ? scale.ScaleUp(height) : height},
+        };
+    };
+    const auto color = resource(input_color);
+    const auto motion = resource(motion_vectors);
+    const auto depth_image = resource(depth);
+    if (!color || !motion || !depth_image) {
+        VideoCore::SetFsr4State(VideoCore::Fsr4State::Unavailable);
+        return false;
+    }
+    const int slider = Settings::values.fsr_sharpening_slider.GetValue();
+    bool sharpen = slider < 200;
+    f32 stops = static_cast<f32>(slider) / 100.0f;
+    if (const char* const value = std::getenv("EDEN_NX2_TEMPORAL_SHARPEN")) {
+        sharpen = std::string_view{value} != "off";
+        stops = static_cast<f32>(std::strtod(value, nullptr));
+    }
+    bool upscaled{};
+    try {
+        if (!fsr4_upscaler) {
+            fsr4_upscaler = std::make_unique<Fsr4Upscaler>(device, scheduler, memory_allocator);
+        }
+        upscaled = fsr4_upscaler->Upscale({
+                .color = *color,
+                .depth = *depth_image,
+                .motion_vectors = *motion,
+                .render_size = {render_size[0], render_size[1]},
+                .upscale_size = dst_framebuffer->RenderArea(),
+                .jitter = jitter,
+                .motion_vector_scale = {motion_scale[0] * static_cast<f32>(render_size[0]),
+                                        motion_scale[1] * static_cast<f32>(render_size[1])},
+                .frame_time_ms = frame_time_ms,
+                .reset = reset,
+                .sharpen = sharpen,
+                .sharpness = 1.0f - stops / 2.0f,
+            });
+    } catch (const vk::Exception& exception) {
+        LOG_WARNING(Render_Vulkan, "AMD FSR 4.1.2 unavailable ({}); using FSR 3.1", exception.what());
+        VideoCore::SetFsr4State(VideoCore::Fsr4State::Unavailable);
+    }
+    if (!upscaled) {
+        fsr4_unsupported = true;
+        return false;
+    }
+    DrawUpscaledOutput(dst_framebuffer, fsr4_upscaler->OutputView(),
+                       fsr4_upscaler->OutputImage(), fsr4_upscaler->PointSampler());
+    return true;
+}
+#endif
 
 void TextureCacheRuntime::DrawUpscaledOutput(Framebuffer* dst_framebuffer, VkImageView view,
                                              VkImage output, VkSampler sampler) {

@@ -234,6 +234,11 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
 #endif
+#ifndef HAS_AMD_FSR4
+        if (setting->Id() == Settings::values.amd_fsr4.Id()) {
+            continue;
+        }
+#endif
 
         ConfigurationShared::Widget* widget = [&]() {
             if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
@@ -345,6 +350,37 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             connect(widget->checkbox, &QCheckBox::toggled, panel, &QWidget::setVisible);
             hold_graphics.emplace(setting->Id(), group);
 #endif
+        } else if (setting->Id() == Settings::values.amd_fsr4.Id()) {
+            QWidget* group = new QWidget(this);
+            QVBoxLayout* layout = new QVBoxLayout(group);
+            layout->setContentsMargins(0, 0, 0, 0);
+            layout->addWidget(widget);
+            QLabel* status = new QLabel(group);
+            status->setWordWrap(true);
+            layout->addWidget(status);
+            const auto update = [status, checkbox = widget->checkbox] {
+                if (!checkbox->isChecked()) {
+                    status->setText(tr("AMD FSR 4.1.2 is turned off."));
+                } else {
+                    switch (VideoCore::GetFsr4State()) {
+                    case VideoCore::Fsr4State::Waiting:
+                        status->setText(tr("Waiting for a compatible game's temporal upscaling pass."));
+                        break;
+                    case VideoCore::Fsr4State::Active:
+                        status->setText(tr("AMD FSR 4.1.2 is running."));
+                        break;
+                    case VideoCore::Fsr4State::Unavailable:
+                        status->setText(tr("AMD FSR 4.1.2 is unavailable; using FSR 3.1."));
+                        break;
+                    }
+                }
+            };
+            update();
+            connect(widget->checkbox, &QCheckBox::toggled, group, update);
+            QTimer* timer = new QTimer(group);
+            connect(timer, &QTimer::timeout, group, update);
+            timer->start(1000);
+            hold_graphics.emplace(setting->Id(), group);
         } else if (setting->Id() == Settings::values.frame_gen.Id()) {
             frame_gen_checkbox = widget->checkbox;
             hold_graphics.emplace(setting->Id(), widget);
