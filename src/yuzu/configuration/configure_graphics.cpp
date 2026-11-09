@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QStringLiteral>
+#include <QTimer>
 #include <QtCore/qobjectdefs.h>
 #include <qabstractbutton.h>
 #include <qboxlayout.h>
@@ -33,6 +34,7 @@
 #include "qt_common/config/uisettings.h"
 #include "qt_common/util/vk.h"
 #include "ui_configure_graphics.h"
+#include "video_core/game_dlss_status.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/nvidia_dlss_panel.h"

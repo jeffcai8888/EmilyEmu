@@ -1,5 +1,11 @@
 # AMD FSR Upscaling 4.1.2
 
+The current release-based branch uses upstream `fritchii-v5.5` (`4012e5271e`,
+`oot-gather-fix`), preserving its Fritchii UI, default settings and game fixes.
+See [the release comparison](ReleaseComparison-v5.5.md) for binary evidence,
+build reproduction and the missing upstream PGO profile. This does not add an
+FSR 4 path to Ocarina of Time's separate upstream DLSS implementation.
+
 Windows x64 Vulkan builds support AMD's signed FSR 4.1.2 API from FidelityFX SDK
 v2.4.0. This is temporal upscaling, using color, depth, motion vectors and jitter
 from the existing validated game-DLSS replacement path. Currently that temporal
@@ -56,7 +62,7 @@ The adapter retains the existing FSR 3 depth convention: reversed infinite depth
 an assumed 0.1 near plane and a 60-degree vertical field of view. The physical
 near/far API arguments follow AMD's SDK v2.4.0 sample; they are not interchanged.
 
-Local Windows validation on 2026-11-09:
+Historical Windows validation of the earlier nx2-based build on 2026-11-09:
 
 - Clean x64 Release GUI build with MSVC 19.44 and Qt 6.9.3; startup and the settings
   dialog checked using a fresh portable user directory.
@@ -67,3 +73,13 @@ Local Windows validation on 2026-11-09:
   3.1.6 and 2.3.4, which the FSR 4.1.2 selector rejects instead of reporting them as FSR 4.
 - Legacy signed-comparison warnings were downgraded only while compiling the test
   executable (`_CL_=/wd4388 /wd4389`); the GUI build retained its normal diagnostics.
+
+Release-based validation on 2026-11-10:
+
+- Fresh Fritchii v5.5-based Clang 22.1.8 / Qt 6.8.3 GUI build passed, with `-O3`
+  and ThinLTO; the unpublished upstream PGO profile was not used.
+- FSR, DLSS input contracts, game selection, OoT network and pipeline-cache file
+  checks: 26 cases, 932 assertions passed. FSR coverage remains Fire Emblem only.
+- The full suite did not complete successfully; settings, video, NUP and other
+  failures and test-process exceptions are recorded in `ReleaseComparison-v5.5.md`.
+- This validation does not establish game-performance equivalence or AMD image quality.

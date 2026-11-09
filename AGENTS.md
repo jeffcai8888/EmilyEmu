@@ -30,13 +30,32 @@ Users report game bugs with Lichii logs (`eden_log.txt`, `eden_log.txt.old`). Ea
 
 Add ids here when a report identifies a new game.
 
+## Repository workflow
+
+- `origin` is the owner's repository: `https://github.com/jeffcai8888/EmilyEmu.git`.
+- `upstream` is the direct source: `https://github.com/Frizti/Fritchii.git`.
+- `eglantine` is the ancestor reference: `https://github.com/Djihads80/Eglantine.git`.
+- Fetch `origin` and `upstream` before development. For release-based work, verify the release
+  tag and embedded commit first: Fritchii v5.5 is `fritchii-v5.5` (`4012e5271e`) on
+  `upstream/oot-gather-fix`, not the default `upstream/nx2`. Synchronize the selected baseline
+  before local changes; do not replace the release baseline with the older default branch.
+- Keep release work on `codex/fritchii-v5.5-fsr4.1.2`. Commit local changes and push to `origin`;
+  do not push to `upstream` or `eglantine`. Do not merge the entire Eglantine branch unless asked.
+- Initialize the MSVC SDK environment before configuring. Match Clang 22.1.8 and Qt 6.8.3 for
+  v5.5-based builds, use a separate build directory and 12 jobs, and verify Ninja header dependencies.
+- Upstream's `lichii-v3.profdata` training file is not published. Record any substituted PGO
+  profile and do not claim identical performance. See `docs/ReleaseComparison-v5.5.md` and
+  `tools/windows/build-fritchii-v55-fsr4.ps1`.
+
 ## Before writing a fix
 
 Lichii is a fork of [Eglantine](https://github.com/Djihads80/Eglantine). Do not guess, and do not rewrite a fix upstream already has.
 
-1. `git remote add upstream https://github.com/Djihads80/Eglantine.git && git fetch upstream`.
-2. Check `upstream/nx2`, open and closed PRs, unmerged branches, and issues for the game and symptom (`gh pr list -R Djihads80/Eglantine --state all`, `gh issue list -R Djihads80/Eglantine --state all`, `gh pr diff <n>`). Read the diffs, not only the titles.
-3. If nx2 is behind `upstream/nx2`, merge upstream first. Port an existing upstream fix before writing a new one, and cite its PR or commit.
+1. Follow the repository workflow above and fetch `eglantine` when consulting its changes.
+2. Check both source repositories' open and closed PRs, unmerged branches, and issues for the
+   game and symptom. Read the diffs, not only the titles.
+3. Synchronize the selected upstream baseline first. Port an existing upstream fix before
+   writing a new one, and cite its PR or commit.
 4. Write a new fix only when nothing upstream addresses the root cause the log shows.
 
 ## Live debug server
