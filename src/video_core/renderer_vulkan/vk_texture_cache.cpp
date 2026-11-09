@@ -1787,9 +1787,11 @@ bool TextureCacheRuntime::UpscaleWithFsr3(Framebuffer* dst_framebuffer, ImageVie
             : 1000.0f / 30.0f;
     const bool reset = !fsr3_last_evaluation || frame_time_ms > 250.0f;
     fsr3_last_evaluation = now;
+#if defined(HAS_AMD_FSR4) || defined(EGLANTINE_STREAMLINE)
     const char* const override_value = std::getenv("EDEN_NX2_DLSS_REPLACEMENT");
     const bool use_fsr4 = VideoCommon::Fsr4::Requested(
         Settings::values.amd_fsr4.GetValue(), override_value ? override_value : "");
+#endif
 #ifdef HAS_AMD_FSR4
     if (use_fsr4 && UpscaleWithFsr4(dst_framebuffer, input_color, motion_vectors, depth,
                                    render_size, jitter, motion_scale, frame_time_ms, reset)) {
